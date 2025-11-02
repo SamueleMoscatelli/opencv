@@ -265,6 +265,43 @@ void cvtColor( InputArray _src, OutputArray _dst, int code, int dcn, AlgorithmHi
             cvtColorXYZ2BGR(_src, _dst, dcn, swapBlue(code));
             break;
 
+        case COLOR_SBGR2XYZ:
+        case COLOR_SRGB2XYZ:
+        {
+            Mat src = _src.getMat();
+            Mat fsrc;
+            int depth = src.depth();
+
+            switch (depth) 
+            {
+                case CV_8U:
+                    src.convertTo(fsrc, CV_32F, 1.0/255.0);
+                    break;
+                case CV_16U:
+                    src.convertTo(fsrc, CV_32F, 1.0 / 65535.0);
+                    break;
+                case CV_32F:
+                    fsrc = src.clone();
+                    double minVal, maxVal;
+                    minMaxLoc(fsrc, &minVal, &maxVal);
+                    if (minVal < 0.0 || maxVal > 1.0) {
+                        fsrc /= 255.0;
+                    }
+                    break;
+                default:
+                    CV_Error(Error::StsUnsupportedFormat, "Only CV_8U, CV_16U, CV_32F supported.");
+
+            }
+
+            cvtColorSBGR2XYZ(fsrc, _dst, swapBlue(code));
+            break;
+        }
+
+        case COLOR_XYZ2SBGR:
+        case COLOR_XYZ2SRGB:
+            cvtColorXYZ2BGR(_src, _dst, dcn, swapBlue(code));
+            break;
+
         case COLOR_BGR2HSV: case COLOR_BGR2HSV_FULL:
         case COLOR_RGB2HSV: case COLOR_RGB2HSV_FULL:
             cvtColorBGR2HSV(_src, _dst, swapBlue(code), isFullRangeHSV(code));
