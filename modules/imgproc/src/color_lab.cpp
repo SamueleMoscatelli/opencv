@@ -4842,6 +4842,19 @@ void cvtColorBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 }
 
 
+void cvtColorSBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
+{
+    _src.forEach<cv::Vec3f>([](cv::Vac3f &pixel, const int *)
+    {
+        for (int c = 0; c < 3; c++) {
+            pixel[c] = applyGamma(pixel[c]);
+        }
+    });
+    
+    cvtColorBGR2XYZ(_src, _dst, swapb);
+}
+
+
 void cvtColorXYZ2BGR( InputArray _src, OutputArray _dst, int dcn, bool swapb )
 {
     if( dcn <= 0 ) dcn = 3;
