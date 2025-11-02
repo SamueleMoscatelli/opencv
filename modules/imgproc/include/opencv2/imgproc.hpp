@@ -873,7 +873,11 @@ enum ColorConversionCodes {
     COLOR_RGBA2YUV_YUNV = COLOR_RGBA2YUV_YUY2, //!< synonym to YUY2
     COLOR_BGRA2YUV_YUNV = COLOR_BGRA2YUV_YUY2, //!< synonym to YUY2
 
-    COLOR_COLORCVT_MAX  = 155
+    //! Extended RGB <-> XYZ conversions
+    COLOR_SRGB2XYZ = 155,
+    COLOR_XYZ2SRGB = 156,
+
+    COLOR_COLORCVT_MAX  = 157
 };
 
 //! @addtogroup imgproc_shape
