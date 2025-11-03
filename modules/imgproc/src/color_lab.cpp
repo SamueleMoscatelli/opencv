@@ -1040,6 +1040,16 @@ static inline softfloat applyInvGamma(softfloat x)
 }
 
 
+void applyGamma(InputArray& src) {
+    src.forEach<cv::Vec3f>([](cv::Vac3f &pixel, const int *)
+    {
+        for (int c = 0; c < 3; c++) {
+            pixel[c] = applyGamma(pixel[c]);
+        }
+    });
+}
+
+
 static LUVLUT_T initLUTforLUV(const softfloat &un, const softfloat &vn)
 {
     //when XYZ are limited to [0, 2]
@@ -4844,12 +4854,7 @@ void cvtColorBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 
 void cvtColorSBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 {
-    _src.forEach<cv::Vec3f>([](cv::Vac3f &pixel, const int *)
-    {
-        for (int c = 0; c < 3; c++) {
-            pixel[c] = applyGamma(pixel[c]);
-        }
-    });
+    applyGamma(_src);
     
     cvtColorBGR2XYZ(_src, _dst, swapb);
 }
