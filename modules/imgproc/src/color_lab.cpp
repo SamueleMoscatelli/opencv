@@ -1040,13 +1040,42 @@ static inline softfloat applyInvGamma(softfloat x)
 }
 
 
-void applyGamma(InputArray& src) {
+static inline void applyGamma(InputArray& src) {
     src.forEach<cv::Vec3f>([](cv::Vac3f &pixel, const int *)
     {
         for (int c = 0; c < 3; c++) {
             pixel[c] = applyGamma(pixel[c]);
         }
     });
+}
+
+
+static Mat applyLinearization(InputArray _src) {
+    Mat src = _src.getMat();
+    Mat fsrc;
+    int depth = src.depth();
+
+    switch (depth) 
+    {
+        case CV_8U:
+            src.convertTo(fsrc, CV_32F, 1.0/255.0);
+            break;
+        case CV_16U:
+            src.convertTo(fsrc, CV_32F, 1.0 / 65535.0);
+            break;
+        case CV_32F:
+            fsrc = src.clone();
+            double minVal, maxVal;
+            minMaxLoc(fsrc, &minVal, &maxVal);
+            if (minVal < 0.0 || maxVal > 1.0) {
+                fsrc /= 255.0;
+            }
+            break;
+        default:
+            CV_Error(Error::StsUnsupportedFormat, "Only CV_8U, CV_16U, CV_32F supported.");
+    }
+
+    return fsrc;
 }
 
 
@@ -4854,7 +4883,9 @@ void cvtColorBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 
 void cvtColorSBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 {
-    applyGamma(_src);
+    Mat fsrc = applyLinearization(_src);
+
+    applyGamma(fsrc);
     
     cvtColorBGR2XYZ(_src, _dst, swapb);
 }
