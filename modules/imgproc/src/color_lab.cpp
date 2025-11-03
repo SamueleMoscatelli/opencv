@@ -4887,7 +4887,7 @@ void cvtColorSBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 
     applyGamma(fsrc);
     
-    cvtColorBGR2XYZ(_src, _dst, swapb);
+    cvtColorBGR2XYZ(fsrc, _dst, swapb);
 }
 
 
