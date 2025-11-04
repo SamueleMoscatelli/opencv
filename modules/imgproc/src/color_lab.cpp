@@ -1040,11 +1040,11 @@ static inline softfloat applyInvGamma(softfloat x)
 }
 
 
-static inline void applyGamma(InputArray& src) {
-    src.forEach<cv::Vec3f>([](cv::Vac3f &pixel, const int *)
+static inline void applyGamma(Mat& fsrc) {
+    fsrc.forEach<cv::Vec3f>([](cv::Vec3f &pixel, const int *)
     {
-        for (int c = 0; c < 3; c++) {
-            pixel[c] = applyGamma(pixel[c]);
+        for (int c = 0; c < 3; ++c) {
+            pixel[c] = (float)applyGamma(softfloat(pixel[c]));
         }
     });
 }
