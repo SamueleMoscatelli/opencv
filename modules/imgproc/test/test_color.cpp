@@ -3086,6 +3086,65 @@ static void checkData(const Mat& actual, const Mat& reference, cvtest::TS* ts, c
     }
 }
 
+static Vec3f sbgr_to_xyz_ref(const Vec3f &sbgr_norm) {
+    auto inv = [](float c)->float {
+        return (c <= 0.04045) ? (c / 12.92) : std::pow((c + 0.055)/1.055, 2.4);
+    };
+    float R = inv(sbgr_norm[2]);
+    float G = inv(sbgr_norm[1]);
+    float B = inv(sbgr_norm[0]);
+
+    static const float M[9] = {
+        0.412453, 0.357580, 0.180423,
+        0.212671, 0.715160, 0.072169,
+        0.019334, 0.119193, 0.950227
+    };
+    Vec3f xyz;
+
+    xyz[0] = M[2]*B + M[1]*G + M[0]*R;
+    xyz[1] = M[5]*B + M[4]*G + M[3]*R;
+    xyz[2] = M[8]*B + M[7]*G + M[6]*R;
+    return xyz;
+}
+
+TEST(ImgProc_SBGR2XYZ, accuracy)
+{
+    Vec3b src8(120, 200, 80);
+    Mat src(1,1, CV_8UC3, src8);
+
+    Mat dst;
+    cvtColor(src, dst, COLOR_SBGR2XYZ);
+
+    Vec3f src_norm(src8[0]/255.f, src8[1]/255.f, src8[2]/255.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_SRGB2XYZ, accuracy)
+{
+    Vec3b src8_rgb(80, 200, 120);
+    Mat src_rgb(1,1, CV_8UC3, src8_rgb);
+
+    Mat dst;
+    cvtColor(src_rgb, dst, COLOR_SRGB2XYZ);
+
+    Vec3f src_norm(src8_rgb[2]/255.f, src8_rgb[1]/255.f, src8_rgb[0]/255.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
 TEST(ImgProc_BayerEdgeAwareDemosaicing, accuracy)
 {
     cvtest::TS* ts = cvtest::TS::ptr();
