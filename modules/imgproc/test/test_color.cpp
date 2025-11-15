@@ -3107,7 +3107,7 @@ static Vec3f sbgr_to_xyz_ref(const Vec3f &sbgr_norm) {
     return xyz;
 }
 
-TEST(ImgProc_8USBGR2XYZ, accuracy1)
+TEST(ImgProc_8USBGR2XYZ, accuracy)
 {
     Vec3b src8(120, 200, 80);
     Mat src(1,1, CV_8UC3);
@@ -3127,7 +3127,7 @@ TEST(ImgProc_8USBGR2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_8USRGB2XYZ, accuracy1)
+TEST(ImgProc_8USRGB2XYZ, accuracy)
 {
     Vec3b src8_rgb(80, 200, 120);
     Mat src_rgb(1,1, CV_8UC3);
@@ -3147,7 +3147,7 @@ TEST(ImgProc_8USRGB2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_16USBGR2XYZ, accuracy1)
+TEST(ImgProc_16USBGR2XYZ, accuracy)
 {
     Vec3w src16(12000, 20000, 8000);
     Mat src(1,1, CV_16UC3);
@@ -3167,7 +3167,7 @@ TEST(ImgProc_16USBGR2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_16USRGB2XYZ, accuracy1)
+TEST(ImgProc_16USRGB2XYZ, accuracy)
 {
     Vec3w src16_rgb(8000, 20000, 12000);
     Mat src_rgb(1,1, CV_16UC3);
@@ -3187,7 +3187,7 @@ TEST(ImgProc_16USRGB2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_32FSBGR2XYZ, accuracy1)
+TEST(ImgProc_32FSBGR2XYZ, accuracy)
 {
     Vec3f src32(120.f, 200.f, 80.f);
     Mat src(1,1, CV_32FC3);
@@ -3207,7 +3207,7 @@ TEST(ImgProc_32FSBGR2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_32FSRGB2XYZ, accuracy1)
+TEST(ImgProc_32FSRGB2XYZ, accuracy)
 {
     Vec3f src32_rgb(80.f, 200.f, 120.f);
     Mat src_rgb(1,1, CV_32FC3);
@@ -3227,7 +3227,7 @@ TEST(ImgProc_32FSRGB2XYZ, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_32FC3SBGR2XYZ, accuracy1)
+TEST(ImgProc_32FC3SBGR2XYZ, accuracy)
 {
     Mat src(200, 200, CV_32FC3);
     cv::randu(src, 0.0f, 1.0f);
@@ -3252,7 +3252,7 @@ TEST(ImgProc_32FC3SBGR2XYZ, accuracy1)
     EXPECT_LE(maxDiff, 1e-4);
 }
 
-TEST(ImgProc_32FC3SRGB2XYZ, accuracy1)
+TEST(ImgProc_32FC3SRGB2XYZ, accuracy)
 {
     Mat src(200, 200, CV_32FC3);
     cv::randu(src, 0.0f, 1.0f);
@@ -3277,7 +3277,7 @@ TEST(ImgProc_32FC3SRGB2XYZ, accuracy1)
     EXPECT_LE(maxDiff, 1e-4);
 }
 
-TEST(ImgProc_XYZ2SBGR, accuracy1)
+TEST(ImgProc_XYZ2SBGR, accuracy)
 {
     Vec3b src8(120, 200, 80);
 
@@ -3301,7 +3301,7 @@ TEST(ImgProc_XYZ2SBGR, accuracy1)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_XYZ2SRGB, accuracy1)
+TEST(ImgProc_XYZ2SRGB, accuracy)
 {
     Vec3b src8_rgb(80, 200, 120);
 
@@ -3325,7 +3325,7 @@ TEST(ImgProc_XYZ2SRGB, accuracy1)
     EXPECT_NEAR(got[2], ref[0], 1e-4);
 }
 
-TEST(ImgProc_32XYZ2SBGR, accuracy1)
+TEST(ImgProc_32XYZ2SBGR, accuracy)
 {
     Mat src(200, 200, CV_32FC3);
     randu(src, 0.0f, 1.0f);
@@ -3345,7 +3345,7 @@ TEST(ImgProc_32XYZ2SBGR, accuracy1)
     EXPECT_LE(maxDiff, 1e-3);
 }
 
-TEST(ImgProc_32XYZ2SRGB, accuracy1)
+TEST(ImgProc_32XYZ2SRGB, accuracy)
 {
     Mat src(200, 200, CV_32FC3);
     randu(src, 0.0f, 1.0f);
