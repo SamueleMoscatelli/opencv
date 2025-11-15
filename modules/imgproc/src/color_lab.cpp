@@ -14,7 +14,6 @@
 #include "opencv2/core/softfloat.hpp"
 
 #include "color.hpp"
-#include <iostream>
 
 using cv::softfloat;
 
@@ -1081,7 +1080,6 @@ static Mat applyNormalization(InputArray _src) {
             if (minVal < 0.0 || maxVal > 1.0) {
                 fsrc /= 255.0;
             }
-
             break;
         default:
             CV_Error(Error::StsUnsupportedFormat, "Only CV_8U, CV_16U, CV_32F supported.");
