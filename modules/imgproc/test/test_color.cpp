@@ -3107,10 +3107,11 @@ static Vec3f sbgr_to_xyz_ref(const Vec3f &sbgr_norm) {
     return xyz;
 }
 
-TEST(ImgProc_SBGR2XYZ, accuracy)
+TEST(ImgProc_8USBGR2XYZ, accuracy1)
 {
     Vec3b src8(120, 200, 80);
-    Mat src(1,1, CV_8UC3, src8);
+    Mat src(1,1, CV_8UC3);
+    src.at<Vec3b>(0, 0) = src8;
 
     Mat dst;
     cvtColor(src, dst, COLOR_SBGR2XYZ);
@@ -3126,10 +3127,11 @@ TEST(ImgProc_SBGR2XYZ, accuracy)
     EXPECT_NEAR(got[2], ref[2], 1e-4);
 }
 
-TEST(ImgProc_SRGB2XYZ, accuracy)
+TEST(ImgProc_8USRGB2XYZ, accuracy1)
 {
     Vec3b src8_rgb(80, 200, 120);
-    Mat src_rgb(1,1, CV_8UC3, src8_rgb);
+    Mat src_rgb(1,1, CV_8UC3);
+    src_rgb.at<Vec3b>(0, 0) = src8_rgb;
 
     Mat dst;
     cvtColor(src_rgb, dst, COLOR_SRGB2XYZ);
@@ -3143,6 +3145,224 @@ TEST(ImgProc_SRGB2XYZ, accuracy)
     EXPECT_NEAR(got[0], ref[0], 1e-4);
     EXPECT_NEAR(got[1], ref[1], 1e-4);
     EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_16USBGR2XYZ, accuracy1)
+{
+    Vec3w src16(12000, 20000, 8000);
+    Mat src(1,1, CV_16UC3);
+    src.at<Vec3w>(0, 0) = src16;
+
+    Mat dst;
+    cvtColor(src, dst, COLOR_SBGR2XYZ);
+
+    Vec3f src_norm(src16[0]/65535.f, src16[1]/65535.f, src16[2]/65535.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_16USRGB2XYZ, accuracy1)
+{
+    Vec3w src16_rgb(8000, 20000, 12000);
+    Mat src_rgb(1,1, CV_16UC3);
+    src_rgb.at<Vec3w>(0, 0) = src16_rgb;
+
+    Mat dst;
+    cvtColor(src_rgb, dst, COLOR_SRGB2XYZ);
+
+    Vec3f src_norm(src16_rgb[2]/65535.f, src16_rgb[1]/65535.f, src16_rgb[0]/65535.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_32FSBGR2XYZ, accuracy1)
+{
+    Vec3f src32(120.f, 200.f, 80.f);
+    Mat src(1,1, CV_32FC3);
+    src.at<Vec3f>(0, 0) = src32;
+
+    Mat dst;
+    cvtColor(src, dst, COLOR_SBGR2XYZ);
+
+    Vec3f src_norm(src32[0]/255.f, src32[1]/255.f, src32[2]/255.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_32FSRGB2XYZ, accuracy1)
+{
+    Vec3f src32_rgb(80.f, 200.f, 120.f);
+    Mat src_rgb(1,1, CV_32FC3);
+    src_rgb.at<Vec3f>(0, 0) = src32_rgb;
+
+    Mat dst;
+    cvtColor(src_rgb, dst, COLOR_SRGB2XYZ);
+
+    Vec3f src_norm(src32_rgb[2]/255.f, src32_rgb[1]/255.f, src32_rgb[0]/255.f);
+    Vec3f ref = sbgr_to_xyz_ref(src_norm);
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_32FC3SBGR2XYZ, accuracy1)
+{
+    Mat src(200, 200, CV_32FC3);
+    cv::randu(src, 0.0f, 1.0f);
+
+    Mat dst, ref;
+    cvtColor(src, dst, COLOR_SBGR2XYZ);
+
+    Mat linear = src.clone();
+    linear.forEach<Vec3f>([](Vec3f &p, const int*) {
+        for (int i = 0; i < 3; i++) {
+            float v = p[i];
+            p[i] = (v <= 0.04045f) ? (v/12.92f) : std::pow((v+0.055f)/1.055f, 2.4f);
+        }
+    });
+
+    cvtColor(linear, ref, COLOR_BGR2XYZ);
+
+    Mat diff;
+    absdiff(dst, ref, diff);
+    double maxDiff;
+    minMaxLoc(diff, nullptr, &maxDiff);
+    EXPECT_LE(maxDiff, 1e-4);
+}
+
+TEST(ImgProc_32FC3SRGB2XYZ, accuracy1)
+{
+    Mat src(200, 200, CV_32FC3);
+    cv::randu(src, 0.0f, 1.0f);
+
+    Mat dst, ref;
+    cvtColor(src, dst, COLOR_SRGB2XYZ);
+
+    Mat linear = src.clone();
+    linear.forEach<Vec3f>([](Vec3f &p, const int*) {
+        for (int i = 0; i < 3; i++) {
+            float v = p[i];
+            p[i] = (v <= 0.04045f) ? (v/12.92f) : std::pow((v+0.055f)/1.055f, 2.4f);
+        }
+    });
+
+    cvtColor(linear, ref, COLOR_RGB2XYZ);
+
+    Mat diff;
+    absdiff(dst, ref, diff);
+    double maxDiff;
+    minMaxLoc(diff, nullptr, &maxDiff);
+    EXPECT_LE(maxDiff, 1e-4);
+}
+
+TEST(ImgProc_XYZ2SBGR, accuracy1)
+{
+    Vec3b src8(120, 200, 80);
+
+    Vec3f src_norm(src8[0]/255.f, src8[1]/255.f, src8[2]/255.f);
+
+    Vec3f xyz_ref = sbgr_to_xyz_ref(src_norm);
+
+    Mat xyz_mat(1, 1, CV_32FC3);
+    xyz_mat.at<Vec3f>(0,0) = xyz_ref;
+
+    Mat dst;
+    cvtColor(xyz_mat, dst, COLOR_XYZ2SBGR);
+
+    Vec3f ref = src_norm;
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[0], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[2], 1e-4);
+}
+
+TEST(ImgProc_XYZ2SRGB, accuracy1)
+{
+    Vec3b src8_rgb(80, 200, 120);
+
+    Vec3f src_norm(src8_rgb[2]/255.f, src8_rgb[1]/255.f, src8_rgb[0]/255.f);
+
+    Vec3f xyz_ref = sbgr_to_xyz_ref(src_norm);
+
+    Mat xyz_mat(1, 1, CV_32FC3);
+    xyz_mat.at<Vec3f>(0,0) = xyz_ref;
+
+    Mat dst;
+    cvtColor(xyz_mat, dst, COLOR_XYZ2SRGB);
+
+    Vec3f ref = src_norm;
+
+    ASSERT_EQ(dst.type(), CV_32FC3);
+    Vec3f got = dst.at<Vec3f>(0,0);
+
+    EXPECT_NEAR(got[0], ref[2], 1e-4);
+    EXPECT_NEAR(got[1], ref[1], 1e-4);
+    EXPECT_NEAR(got[2], ref[0], 1e-4);
+}
+
+TEST(ImgProc_32XYZ2SBGR, accuracy1)
+{
+    Mat src(200, 200, CV_32FC3);
+    randu(src, 0.0f, 1.0f);
+
+    Mat xyz, dst;
+    cvtColor(src, xyz, COLOR_SBGR2XYZ);
+    cvtColor(xyz, dst, COLOR_XYZ2SBGR);
+
+    min(dst, 1.0f, dst);
+    max(dst, 0.0f, dst);
+
+    Mat diff;
+    absdiff(src, dst, diff);
+    double maxDiff;
+    minMaxLoc(diff, nullptr, &maxDiff);
+
+    EXPECT_LE(maxDiff, 1e-3);
+}
+
+TEST(ImgProc_32XYZ2SRGB, accuracy1)
+{
+    Mat src(200, 200, CV_32FC3);
+    randu(src, 0.0f, 1.0f);
+
+    Mat xyz, dst;
+    cvtColor(src, xyz, COLOR_SRGB2XYZ);
+    cvtColor(xyz, dst, COLOR_XYZ2SRGB);
+
+    min(dst, 1.0f, dst);
+    max(dst, 0.0f, dst);
+
+    Mat diff;
+    absdiff(src, dst, diff);
+    double maxDiff;
+    minMaxLoc(diff, nullptr, &maxDiff);
+
+    EXPECT_LE(maxDiff, 1e-3);
 }
 
 TEST(ImgProc_BayerEdgeAwareDemosaicing, accuracy)

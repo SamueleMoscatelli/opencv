@@ -272,7 +272,7 @@ void cvtColor( InputArray _src, OutputArray _dst, int code, int dcn, AlgorithmHi
 
         case COLOR_XYZ2SBGR:
         case COLOR_XYZ2SRGB:
-            cvtColorXYZ2BGR(_src, _dst, dcn, swapBlue(code));
+            cvtColorXYZ2SBGR(_src, _dst, dcn, swapBlue(code));
             break;
 
         case COLOR_BGR2HSV: case COLOR_BGR2HSV_FULL:

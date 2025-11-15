@@ -14,6 +14,7 @@
 #include "opencv2/core/softfloat.hpp"
 
 #include "color.hpp"
+#include <iostream>
 
 using cv::softfloat;
 
@@ -1050,7 +1051,17 @@ static inline void applyGamma(Mat& fsrc) {
 }
 
 
-static Mat applyLinearization(InputArray _src) {
+static inline void applyInvGamma(Mat& fsrc) {
+    fsrc.forEach<cv::Vec3f>([](cv::Vec3f &pixel, const int *)
+    {
+        for (int c = 0; c < 3; ++c) {
+            pixel[c] = (float)applyInvGamma(softfloat(pixel[c]));
+        }
+    });
+}
+
+
+static Mat applyNormalization(InputArray _src) {
     Mat src = _src.getMat();
     Mat fsrc;
     int depth = src.depth();
@@ -1058,7 +1069,7 @@ static Mat applyLinearization(InputArray _src) {
     switch (depth) 
     {
         case CV_8U:
-            src.convertTo(fsrc, CV_32F, 1.0/255.0);
+            src.convertTo(fsrc, CV_32F, 1.0 / 255.0);
             break;
         case CV_16U:
             src.convertTo(fsrc, CV_32F, 1.0 / 65535.0);
@@ -1070,6 +1081,7 @@ static Mat applyLinearization(InputArray _src) {
             if (minVal < 0.0 || maxVal > 1.0) {
                 fsrc /= 255.0;
             }
+
             break;
         default:
             CV_Error(Error::StsUnsupportedFormat, "Only CV_8U, CV_16U, CV_32F supported.");
@@ -4883,10 +4895,10 @@ void cvtColorBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 
 void cvtColorSBGR2XYZ( InputArray _src, OutputArray _dst, bool swapb )
 {
-    Mat fsrc = applyLinearization(_src);
+    Mat fsrc = applyNormalization(_src);
 
     applyGamma(fsrc);
-    
+
     cvtColorBGR2XYZ(fsrc, _dst, swapb);
 }
 
@@ -4897,6 +4909,22 @@ void cvtColorXYZ2BGR( InputArray _src, OutputArray _dst, int dcn, bool swapb )
     CvtHelper< Set<3>, Set<3, 4>, Set<CV_8U, CV_16U, CV_32F> > h(_src, _dst, dcn);
 
     hal::cvtXYZtoBGR(h.src.data, h.src.step, h.dst.data, h.dst.step, h.src.cols, h.src.rows, h.depth, dcn, swapb);
+}
+
+
+void cvtColorXYZ2SBGR( InputArray _src, OutputArray _dst, int dcn, bool swapb )
+{
+    cvtColorXYZ2BGR(_src, _dst, dcn, swapb);
+
+    Mat fdst = _dst.getMat();
+    
+    applyInvGamma(fdst);
+
+    int depth = _src.depth();
+    Mat tmp;
+    fdst.convertTo(tmp, depth);
+
+    tmp.copyTo(_dst);
 }
 
 } // namespace cv
